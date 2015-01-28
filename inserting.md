@@ -53,11 +53,39 @@ $arr = [
     new ToStringEnabledClass("john,doe,john.doe@example.com")
 ];
 
-$writer->insertAll($arr); //using an array 
+$writer->insertAll($arr); //using an array
 
 $object = new ArrayIterator($arr);
 $writer->insertAll($object); //using a Traversable object
 ~~~
+
+### useValidation(bool $activate)
+
+<p class="message-notice">added in version 6.4</p>
+
+The `Writer` class out of the box will validate your data prior to inserting it. At any moment you can activate or deactivate this process using the `Writer::useValidation`. The method takes one argument `$activate` which is a boolean. If set to `false`, the validation will be disabled.
+
+By default, and for backward compatibility, the class validate the user input.
+
+~~~php
+<?php
+use League\Csv\Writer;
+
+$sth = $dbh->prepare("SELECT firstname, lastname, email FROM users");
+$sth->setFetchMode(PDO::FETCH_ASSOC);
+$sth->execute();
+
+$csv = Writer::createFromFileObject(new SplTempFileObject);
+//the first line is validate
+$csv->insertOne('firstname,lastname,email');
+$csv->useValidation(false);
+//the remaining lines are not validated
+$csv->insertAll($sth);
+$csv->output('users.csv');
+die;
+~~~
+
+<p class="message-info">Disabling the validation process reduces the CSV creation duration without affecting the memory usage.</p>
 
 ## Handling null values
 
